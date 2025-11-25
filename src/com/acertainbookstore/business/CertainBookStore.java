@@ -309,7 +309,15 @@ public class CertainBookStore implements BookStore, StockManager {
      */
     @Override
     public synchronized List<Book> getTopRatedBooks(int numBooks) throws BookStoreException {
-        throw new BookStoreException();
+        if (numBooks < 0) {
+            throw new BookStoreException("numBooks = " + numBooks + ", but it must be positive");
+        }
+
+        return bookMap.values().stream()
+                .sorted(Comparator.comparingDouble(BookStoreBook::getAverageRating))
+                .limit(numBooks)
+                .map(BookStoreBook::immutableBook)
+                .collect(Collectors.toList());
     }
 
     /*
@@ -329,7 +337,21 @@ public class CertainBookStore implements BookStore, StockManager {
      */
     @Override
     public synchronized void rateBooks(Set<BookRating> bookRating) throws BookStoreException {
-        throw new BookStoreException();
+        if (bookRating == null) {
+            throw new BookStoreException(BookStoreConstants.NULL_INPUT);
+        }
+
+        for (BookRating rating : bookRating) {
+            int isbn = rating.getISBN();
+            int rate = rating.getRating();
+
+            validateISBNInStock(isbn);
+            if (BookStoreUtility.isInvalidRating(rate)) {
+                throw new BookStoreException(BookStoreConstants.RATING + rate + BookStoreConstants.INVALID);
+            }
+
+            bookMap.get(isbn).addRating(rate);
+        }
     }
 
     /*

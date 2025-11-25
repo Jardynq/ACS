@@ -343,4 +343,83 @@ public class BookStoreTest {
         assertTrue(booksInStorePreTest.containsAll(booksInStorePostTest)
                 && booksInStorePreTest.size() == booksInStorePostTest.size());
     }
+
+    /**
+     * Tests input validation for rateBooks.
+     * Ensures that invalid ratings are rejected and valid ratings are accepted.
+     * Ensures that invalid ISBNs are rejected.
+     * Ensures that the state of the bookstore remains unchanged after invalid inputs.
+     *
+     * @throws BookStoreException the book store exception
+     */
+    @Test
+    public void testRateBookValidation() throws BookStoreException {
+        List<StockBook> booksInStorePreTest = storeManager.getBooks();
+
+        HashSet<BookRating> ratingsToAdd = new HashSet<>();
+        ratingsToAdd.add(new BookRating(-1, 4)); // invalid
+        try {
+            client.rateBooks(ratingsToAdd);
+            fail();
+        } catch (BookStoreException ex) {
+        }
+
+        ratingsToAdd.clear();
+        ratingsToAdd.add(new BookRating(TEST_ISBN, 6)); // invalid
+        try {
+            client.rateBooks(ratingsToAdd);
+            fail();
+        } catch (BookStoreException ex) {
+        }
+
+        ratingsToAdd.clear();
+        ratingsToAdd.add(new BookRating(TEST_ISBN, -1)); // invalid
+        try {
+            client.rateBooks(ratingsToAdd);
+            fail();
+        } catch (BookStoreException ex) {
+        }
+
+        ratingsToAdd.clear();
+        ratingsToAdd.add(new BookRating(TEST_ISBN, 0)); // valid
+        ratingsToAdd.add(new BookRating(TEST_ISBN, 1)); // valid
+        ratingsToAdd.add(new BookRating(TEST_ISBN, 2)); // valid
+        ratingsToAdd.add(new BookRating(TEST_ISBN, 3)); // valid
+        ratingsToAdd.add(new BookRating(TEST_ISBN, 4)); // valid
+        ratingsToAdd.add(new BookRating(TEST_ISBN, 5)); // valid
+
+        client.rateBooks(ratingsToAdd);
+
+        List<StockBook> booksInStorePostTest = storeManager.getBooks();
+        assertTrue(booksInStorePreTest.containsAll(booksInStorePostTest)
+                && booksInStorePreTest.size() == booksInStorePostTest.size());
+    }
+
+    /**
+     * Tests that books cannot be retrieved if ISBN is invalid.
+     *
+     * @throws BookStoreException the book store exception
+     */
+    @Test
+    public void testAddRatings() throws BookStoreException {
+        addBooks(1, 10);
+        addBooks(2, 10);
+        addBooks(3, 10);
+
+        HashSet<BookRating> ratingsToAdd = new HashSet<>();
+        ratingsToAdd.add(new BookRating(TEST_ISBN, 3));
+        ratingsToAdd.add(new BookRating(1, 1));
+        ratingsToAdd.add(new BookRating(2, 2));
+
+        client.rateBooks(ratingsToAdd);
+        var books = client.getTopRatedBooks(4).stream().map(Book::getISBN);
+        assertArrayEquals(new Integer[]{3, 1, 2, TEST_ISBN}, books.toArray());
+
+        ratingsToAdd.clear();
+        ratingsToAdd.add(new BookRating(TEST_ISBN, 0));
+
+        client.rateBooks(ratingsToAdd);
+        var books2 = client.getTopRatedBooks(4).stream().map(Book::getISBN);
+        assertArrayEquals(new Integer[]{3, 1, TEST_ISBN, 2}, books2.toArray());
+    }
 }

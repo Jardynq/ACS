@@ -348,7 +348,6 @@ public class BookStoreTest {
      * Tests input validation for rateBooks.
      * Ensures that invalid ratings are rejected and valid ratings are accepted.
      * Ensures that invalid ISBNs are rejected.
-     * Ensures that the state of the bookstore remains unchanged after invalid inputs.
      *
      * @throws BookStoreException the book store exception
      */
@@ -396,15 +395,44 @@ public class BookStoreTest {
     }
 
     /**
+     * Tests input validation for getTopRatedBooks.
+     * Ensures that negative numBooks are rejected.
+     * Ensures that numBooks > totalBooks is truncated.
+     *
+     * @throws BookStoreException the book store exception
+     */
+    @Test
+    public void testGetTopRatedBooksValidation() throws BookStoreException {
+        addBooks(1, 10);
+        addBooks(2, 10);
+        addBooks(3, 10);
+        List<StockBook> booksInStorePreTest = storeManager.getBooks();
+
+        try {
+            client.getTopRatedBooks(-1);
+            fail();
+        } catch (BookStoreException ex) {
+        }
+
+        var books = client.getTopRatedBooks(10);
+        assertEquals(4, books.size());
+
+        List<StockBook> booksInStorePostTest = storeManager.getBooks();
+        assertTrue(booksInStorePreTest.containsAll(booksInStorePostTest)
+                && booksInStorePreTest.size() == booksInStorePostTest.size());
+    }
+
+    /**
      * Tests that books cannot be retrieved if ISBN is invalid.
      *
      * @throws BookStoreException the book store exception
      */
     @Test
-    public void testAddRatings() throws BookStoreException {
+    public void testAddRatingsAndGetTopRatedBooks() throws BookStoreException {
         addBooks(1, 10);
         addBooks(2, 10);
         addBooks(3, 10);
+        List<StockBook> booksInStorePreTest = storeManager.getBooks();
 
         HashSet<BookRating> ratingsToAdd = new HashSet<>();
         ratingsToAdd.add(new BookRating(TEST_ISBN, 3));
@@ -421,5 +449,9 @@ public class BookStoreTest {
         client.rateBooks(ratingsToAdd);
         var books2 = client.getTopRatedBooks(4).stream().map(Book::getISBN);
         assertArrayEquals(new Integer[]{3, 1, TEST_ISBN, 2}, books2.toArray());
+
+        List<StockBook> booksInStorePostTest = storeManager.getBooks();
+        assertTrue(booksInStorePreTest.containsAll(booksInStorePostTest)
+                && booksInStorePreTest.size() == booksInStorePostTest.size());
     }
 }

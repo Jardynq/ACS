@@ -178,7 +178,7 @@ public class StockManagerTest {
     public void testAddBookInvalidCopies() throws BookStoreException {
         List<StockBook> booksInStorePreTest = storeManager.getBooks();
 
-        Set<StockBook> booksToAdd = new HashSet<StockBook>();
+        Set<StockBook> booksToAdd = new HashSet<>();
         booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 1, "Harry Potter and Vivek", "JUnit Rowling", (float) 100, 5,
                 0, 0, 0, false)); // valid
         booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 2, "Harry Potter and Marcos", "JUnit Rowling", (float) 100,
@@ -206,7 +206,7 @@ public class StockManagerTest {
     public void testAddBookInvalidPrice() throws BookStoreException {
         List<StockBook> booksInStorePreTest = storeManager.getBooks();
 
-        Set<StockBook> booksToAdd = new HashSet<StockBook>();
+        Set<StockBook> booksToAdd = new HashSet<>();
         booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 1, "Harry Potter and Vivek", "JUnit Rowling", (float) 100, 5,
                 0, 0, 0, false)); // valid
         booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 2, "Harry Potter and Marcos", "JUnit Rowling", (float) -100,
@@ -234,7 +234,7 @@ public class StockManagerTest {
     public void testAddCopiesCorrectBook() throws BookStoreException {
         // Add a copy of a book
         int copies_to_add = 1;
-        Set<BookCopy> bookCopiesSet = new HashSet<BookCopy>();
+        Set<BookCopy> bookCopiesSet = new HashSet<>();
         bookCopiesSet.add(new BookCopy(TEST_ISBN, copies_to_add));
 
         storeManager.addCopies(bookCopiesSet);
@@ -380,11 +380,11 @@ public class StockManagerTest {
      */
     @Test
     public void testRemoveBooks() throws BookStoreException {
-        List<StockBook> booksAdded = new ArrayList<StockBook>();
+        List<StockBook> booksAdded = new ArrayList<>();
         StockBook book1 = getDefaultBook();
         booksAdded.add(book1);
 
-        Set<StockBook> booksToAdd = new HashSet<StockBook>();
+        Set<StockBook> booksToAdd = new HashSet<>();
         StockBook book2 = new ImmutableStockBook(TEST_ISBN + 1, "The Art of Computer Programming", "Donald Knuth",
                 (float) 300, NUM_COPIES, 0, 0, 0, false);
         booksToAdd.add(book2);
@@ -400,7 +400,7 @@ public class StockManagerTest {
         List<StockBook> booksInStoreList = storeManager.getBooks();
         assertTrue(booksInStoreList.containsAll(booksAdded) && booksInStoreList.size() == booksAdded.size());
 
-        Set<Integer> isbnSet = new HashSet<Integer>();
+        Set<Integer> isbnSet = new HashSet<>();
         isbnSet.add(TEST_ISBN);
         isbnSet.add(TEST_ISBN + 2);
 
@@ -423,14 +423,14 @@ public class StockManagerTest {
      */
     @Test
     public void testGetBooksByISBN() throws BookStoreException {
-        Set<StockBook> booksToAdd = new HashSet<StockBook>();
+        Set<StockBook> booksToAdd = new HashSet<>();
         booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 1, "The Art of Computer Programming", "Donald Knuth",
                 (float) 300, NUM_COPIES, 0, 0, 0, false));
         booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 2, "The C Programming Language",
                 "Dennis Ritchie and Brian Kerninghan", (float) 50, NUM_COPIES, 0, 0, 0, false));
         storeManager.addBooks(booksToAdd);
 
-        Set<Integer> isbnSet = new HashSet<Integer>();
+        Set<Integer> isbnSet = new HashSet<>();
         isbnSet.add(TEST_ISBN + 1);
         isbnSet.add(TEST_ISBN + 2);
 
@@ -445,7 +445,7 @@ public class StockManagerTest {
      */
     @Test
     public void testRemoveAllBooks() throws BookStoreException {
-        Set<StockBook> booksToAdd = new HashSet<StockBook>();
+        Set<StockBook> booksToAdd = new HashSet<>();
         booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 1, "The Art of Computer Programming", "Donald Knuth",
                 (float) 300, NUM_COPIES, 0, 0, 0, false));
         booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 2, "The C Programming Language",

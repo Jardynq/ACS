@@ -460,4 +460,54 @@ public class StockManagerTest {
         booksInStoreList = storeManager.getBooks();
         assertEquals(0, booksInStoreList.size());
     }
+
+    /**
+     * Tests that a book appears in getBooksInDemand after a sale miss.
+     */
+    @Test
+    public void testGetBooksInDemandAfterSaleMiss() throws BookStoreException {
+        List<StockBook> inDemandBefore = storeManager.getBooksInDemand();
+        assertTrue(inDemandBefore.isEmpty());
+
+        Set<BookCopy> toBuy = new HashSet<BookCopy>();
+        toBuy.add(new BookCopy(TEST_ISBN, NUM_COPIES + 1));
+        try {
+            client.buyBooks(toBuy);
+            fail();
+        } catch (BookStoreException ex) {
+            ;
+        }
+
+        List<StockBook> inDemandAfter = storeManager.getBooksInDemand();
+        assertEquals(1, inDemandAfter.size());
+
+        StockBook book = inDemandAfter.get(0);
+        assertEquals(TEST_ISBN.intValue(), book.getISBN());
+        assertEquals(1, book.getNumSaleMisses());
+    }
+
+    /**
+     * Tests that restocking a book clears its in-demand status.
+     */
+    @Test
+    public void testGetBooksInDemandClearedAfterRestock() throws BookStoreException {
+        Set<BookCopy> toBuy = new HashSet<BookCopy>();
+        toBuy.add(new BookCopy(TEST_ISBN, NUM_COPIES + 1));
+        try {
+            client.buyBooks(toBuy);
+            fail();
+        } catch (BookStoreException ex) {
+            ;
+        }
+
+        List<StockBook> inDemandAfter = storeManager.getBooksInDemand();
+        assertEquals(1, inDemandAfter.size());
+
+        Set<BookCopy> copiesToAdd = new HashSet<BookCopy>();
+        copiesToAdd.add(new BookCopy(TEST_ISBN, 10));
+        storeManager.addCopies(copiesToAdd);
+
+        List<StockBook> inDemandAfterRestock = storeManager.getBooksInDemand();
+        assertTrue(inDemandAfterRestock.isEmpty());
+    }
 }

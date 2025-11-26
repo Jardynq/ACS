@@ -124,7 +124,7 @@ public class BookStoreHTTPMessageHandler extends AbstractHandler {
                     break;
 
                 case GETBOOKSINDEMAND:
-                    getBooksInDemand(request, response);
+                    getBooksInDemand(response);
                     break;
 
                 default:
@@ -425,11 +425,10 @@ public class BookStoreHTTPMessageHandler extends AbstractHandler {
     /**
      * Gets the books in demand.
      *
-     * @param request the request
      * @param response the response
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    private void getBooksInDemand(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void getBooksInDemand(HttpServletResponse response) throws IOException {
         BookStoreResponse bookStoreResponse = new BookStoreResponse();
 
         try {

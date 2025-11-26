@@ -243,12 +243,12 @@ public class StockManagerTest {
         Set<Integer> testISBNList = new HashSet<>();
         testISBNList.add(TEST_ISBN);
         List<StockBook> listBooks = storeManager.getBooksByISBN(testISBNList);
-        //assertTrue(listBooks.size() == 1);
+        assertEquals(1, listBooks.size());
 
         StockBook bookInList = listBooks.get(0);
         StockBook addedBook = getDefaultBook();
 
-        //assertTrue(bookInList.getNumCopies() == addedBook.getNumCopies() + copies_to_add);
+        assertEquals(bookInList.getNumCopies(), addedBook.getNumCopies() + copies_to_add);
 
         // Painful hack since we want to check all fields except num copies on
         // an immutable object
@@ -355,7 +355,6 @@ public class StockManagerTest {
      */
     @Test
     public void testDefaultBookForEditorsPick() throws BookStoreException {
-
         // The default book should not be an editor pick.
         List<Book> editorPicks = client.getEditorPicks(1);
         assertEquals(0, editorPicks.size());
@@ -469,13 +468,12 @@ public class StockManagerTest {
         List<StockBook> inDemandBefore = storeManager.getBooksInDemand();
         assertTrue(inDemandBefore.isEmpty());
 
-        Set<BookCopy> toBuy = new HashSet<BookCopy>();
+        Set<BookCopy> toBuy = new HashSet<>();
         toBuy.add(new BookCopy(TEST_ISBN, NUM_COPIES + 1));
         try {
             client.buyBooks(toBuy);
             fail();
         } catch (BookStoreException ex) {
-            ;
         }
 
         List<StockBook> inDemandAfter = storeManager.getBooksInDemand();
@@ -491,19 +489,18 @@ public class StockManagerTest {
      */
     @Test
     public void testGetBooksInDemandClearedAfterRestock() throws BookStoreException {
-        Set<BookCopy> toBuy = new HashSet<BookCopy>();
+        Set<BookCopy> toBuy = new HashSet<>();
         toBuy.add(new BookCopy(TEST_ISBN, NUM_COPIES + 1));
         try {
             client.buyBooks(toBuy);
             fail();
         } catch (BookStoreException ex) {
-            ;
         }
 
         List<StockBook> inDemandAfter = storeManager.getBooksInDemand();
         assertEquals(1, inDemandAfter.size());
 
-        Set<BookCopy> copiesToAdd = new HashSet<BookCopy>();
+        Set<BookCopy> copiesToAdd = new HashSet<>();
         copiesToAdd.add(new BookCopy(TEST_ISBN, 10));
         storeManager.addCopies(copiesToAdd);
 

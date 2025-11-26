@@ -42,6 +42,7 @@ public final class BookStoreKryoSerializer implements BookStoreSerializer {
         binaryStream.register(java.util.ArrayList.class);
         binaryStream.register(com.acertainbookstore.business.BookEditorPick.class);
         binaryStream.register(com.acertainbookstore.business.ImmutableBook.class);
+        binaryStream.register(com.acertainbookstore.business.BookRating.class);
     }
 
     /*

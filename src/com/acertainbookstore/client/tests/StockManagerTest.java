@@ -36,7 +36,7 @@ public class StockManagerTest {
     /**
      * The local test.
      */
-    private static boolean localTest = true;
+    private static boolean localTest = false;
 
     /**
      * The store manager.

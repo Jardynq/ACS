@@ -29,7 +29,7 @@ public class BookStoreHTTPServerUtility {
      * @param handler the handler
      */
     public static void createServer(int port, AbstractHandler handler, QueuedThreadPool threadpool) {
-        Server server = null;
+        Server server;
         if (threadpool != null) {
             server = new Server(threadpool);
             ServerConnector myConnector = new ServerConnector(server);

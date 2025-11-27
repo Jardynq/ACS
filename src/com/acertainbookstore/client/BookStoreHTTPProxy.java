@@ -141,7 +141,6 @@ public class BookStoreHTTPProxy implements BookStore {
      *
      * @see com.acertainbookstore.interfaces.BookStore#rateBooks(java.util.Set)
      */
-    @Override
     public void rateBooks(Set<BookRating> bookRating) throws BookStoreException {
         String urlString = serverAddress + "/" + BookStoreMessageTag.RATEBOOKS;
         BookStoreRequest bookStoreRequest = BookStoreRequest.newPostRequest(urlString, bookRating);
@@ -153,7 +152,7 @@ public class BookStoreHTTPProxy implements BookStore {
      *
      * @see com.acertainbookstore.interfaces.BookStore#getTopRatedBooks(int)
      */
-    @Override
+    @SuppressWarnings("unchecked")
     public List<Book> getTopRatedBooks(int numBooks) throws BookStoreException {
         String urlEncodedNumBooks;
 

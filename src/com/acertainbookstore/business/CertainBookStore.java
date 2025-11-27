@@ -347,12 +347,15 @@ public class CertainBookStore implements BookStore, StockManager {
         for (BookRating rating : bookRating) {
             int isbn = rating.getISBN();
             int rate = rating.getRating();
-
             validateISBNInStock(isbn);
             if (BookStoreUtility.isInvalidRating(rate)) {
                 throw new BookStoreException(BookStoreConstants.RATING + rate + BookStoreConstants.INVALID);
             }
+        }
 
+        for (BookRating rating : bookRating) {
+            int isbn = rating.getISBN();
+            int rate = rating.getRating();
             bookMap.get(isbn).addRating(rate);
         }
     }

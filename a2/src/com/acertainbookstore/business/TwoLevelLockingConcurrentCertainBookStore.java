@@ -179,15 +179,20 @@ public class TwoLevelLockingConcurrentCertainBookStore implements BookStore, Sto
 	 * @see com.acertainbookstore.interfaces.StockManager#getBooks()
 	 */
 	public List<StockBook> getBooks() {
+        List<Lock> locks = new ArrayList<>();
+
         lock.readLock().lock();
         var result = bookMap.values().stream()
                 .map(book -> {
-                    book.readLock().lock();
-                    StockBook immutableBook = book.immutableStockBook();
-                    book.readLock().unlock();
-                    return immutableBook;
+                    var lock = book.readLock();
+                    locks.add(lock);
+                    lock.lock();
+                    return book.immutableStockBook();
                 })
                 .collect(Collectors.toList());
+        for (var lock : locks) {
+            lock.unlock();
+        }
         lock.readLock().unlock();
         return result;
 	}
@@ -322,15 +327,19 @@ public class TwoLevelLockingConcurrentCertainBookStore implements BookStore, Sto
             }
 		}
 
+        List<Lock> locks = new ArrayList<>();
 		var result = isbnSet.stream()
 				.map(isbn -> {
                     var book = bookMap.get(isbn);
-                    book.readLock().lock();
-                    StockBook immutableBook = book.immutableStockBook();
-                    book.readLock().unlock();
-                    return immutableBook;
+                    var lock = book.readLock();
+                    locks.add(lock);
+                    lock.lock();
+                    return book.immutableStockBook();
                 })
 				.collect(Collectors.toList());
+        for (var lock : locks) {
+            lock.unlock();
+        }
         lock.readLock().unlock();
         return result;
 	}
@@ -356,15 +365,19 @@ public class TwoLevelLockingConcurrentCertainBookStore implements BookStore, Sto
             }
 		}
 
+        List<Lock> locks = new ArrayList<>();
 		var result = isbnSet.stream()
 				.map(isbn -> {
                     var book = bookMap.get(isbn);
-                    book.readLock().lock();
-                    Book immutableBook = book.immutableBook();
-                    book.readLock().unlock();
-                    return immutableBook;
+                    var lock = book.readLock();
+                    locks.add(lock);
+                    lock.lock();
+                    return (Book) book.immutableBook();
                 })
 				.collect(Collectors.toList());
+        for (var lock : locks) {
+            lock.unlock();
+        }
         lock.readLock().unlock();
         return result;
 	}
@@ -379,16 +392,21 @@ public class TwoLevelLockingConcurrentCertainBookStore implements BookStore, Sto
 			throw new BookStoreException("numBooks = " + numBooks + ", but it must be positive");
 		}
 
+        List<Lock> locks = new ArrayList<>();
+
         lock.readLock().lock();
 		List<BookStoreBook> listAllEditorPicks = bookMap.entrySet().stream()
 				.map(pair -> pair.getValue())
 				.filter(book -> {
-                    book.readLock().lock();
-                    boolean isEditorPick = book.isEditorPick();
-                    book.readLock().unlock();
-                    return isEditorPick;
+                    var lock = book.readLock();
+                    locks.add(lock);
+                    lock.lock();
+                    return book.isEditorPick();
                 })
 				.collect(Collectors.toList());
+        for (var lock : locks) {
+            lock.unlock();
+        }
         lock.readLock().unlock();
 
 		// Find numBooks random indices of books that will be picked.

@@ -7,18 +7,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.acertainbookstore.business.*;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.acertainbookstore.business.Book;
-import com.acertainbookstore.business.BookCopy;
-import com.acertainbookstore.business.BookEditorPick;
-import com.acertainbookstore.business.SingleLockConcurrentCertainBookStore;
-import com.acertainbookstore.business.ImmutableStockBook;
-import com.acertainbookstore.business.StockBook;
 import com.acertainbookstore.client.BookStoreHTTPProxy;
 import com.acertainbookstore.client.StockManagerHTTPProxy;
 import com.acertainbookstore.interfaces.BookStore;
@@ -42,7 +37,10 @@ public class StockManagerTest {
 	/** The local test. */
 	private static boolean localTest = true;
 
-	/** The store manager. */
+    /** Single lock test */
+    private static boolean singleLock = false;
+
+    /** The store manager. */
 	private static StockManager storeManager;
 
 	/** The client. */
@@ -53,23 +51,32 @@ public class StockManagerTest {
 	 */
 	@BeforeClass
 	public static void setUpBeforeClass() {
-		try {
-			String localTestProperty = System.getProperty(BookStoreConstants.PROPERTY_KEY_LOCAL_TEST);
-			localTest = (localTestProperty != null) ? Boolean.parseBoolean(localTestProperty) : localTest;
-			
-			if (localTest) {
-				SingleLockConcurrentCertainBookStore store = new SingleLockConcurrentCertainBookStore();
-				storeManager = store;
-				client = store;
-			} else {
-				storeManager = new StockManagerHTTPProxy("http://localhost:8081/stock");
-				client = new BookStoreHTTPProxy("http://localhost:8081");
-			}
-			
-			storeManager.removeAllBooks();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+        try {
+            String localTestProperty = System.getProperty(BookStoreConstants.PROPERTY_KEY_LOCAL_TEST);
+            localTest = (localTestProperty != null) ? Boolean.parseBoolean(localTestProperty) : localTest;
+
+            String singleLockProperty = System.getProperty(BookStoreConstants.PROPERTY_KEY_SINGLE_LOCK);
+            singleLock = (singleLockProperty != null) ? Boolean.parseBoolean(singleLockProperty) : singleLock;
+
+            if (localTest) {
+                if (singleLock) {
+                    SingleLockConcurrentCertainBookStore store = new SingleLockConcurrentCertainBookStore();
+                    storeManager = store;
+                    client = store;
+                } else {
+                    TwoLevelLockingConcurrentCertainBookStore store = new TwoLevelLockingConcurrentCertainBookStore();
+                    storeManager = store;
+                    client = store;
+                }
+            } else {
+                storeManager = new StockManagerHTTPProxy("http://localhost:8081/stock");
+                client = new BookStoreHTTPProxy("http://localhost:8081");
+            }
+
+            storeManager.removeAllBooks();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 	}
 
 	/**

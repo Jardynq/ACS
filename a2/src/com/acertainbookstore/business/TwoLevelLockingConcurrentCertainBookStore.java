@@ -182,15 +182,17 @@ public class TwoLevelLockingConcurrentCertainBookStore implements BookStore, Sto
         List<Lock> locks = new ArrayList<>();
 
         lock.readLock().lock();
-        var result = bookMap.values().stream()
-                .map(book -> {
-                    var lock = book.readLock();
-                    locks.add(lock);
-                    lock.lock();
-                    return book.immutableStockBook();
-                })
-                .collect(Collectors.toList());
-        for (var lock : locks) {
+        List<Integer> sortedIsbns = new ArrayList<>(bookMap.keySet());
+        sortedIsbns.sort(Comparator.naturalOrder());
+
+        var result = sortedIsbns.stream().map(isbn -> {
+                var book = bookMap.get(isbn);
+                var lock = book.readLock();
+                locks.add(lock);
+                lock.lock();
+                return book.immutableStockBook();
+            }).collect(Collectors.toList());
+        for (Lock lock : locks) {
             lock.unlock();
         }
         lock.readLock().unlock();
@@ -320,8 +322,11 @@ public class TwoLevelLockingConcurrentCertainBookStore implements BookStore, Sto
 			throw new BookStoreException(BookStoreConstants.NULL_INPUT);
 		}
 
+        List<Integer> sortedIsbnSet = new ArrayList<>(isbnSet);
+        sortedIsbnSet.sort(Comparator.naturalOrder());
+
         lock.readLock().lock();
-		for (Integer ISBN : isbnSet) {
+		for (Integer ISBN : sortedIsbnSet) {
             try {
                 validateISBNInStock(ISBN);
             } catch (BookStoreException e) {
@@ -331,7 +336,7 @@ public class TwoLevelLockingConcurrentCertainBookStore implements BookStore, Sto
 		}
 
         List<Lock> locks = new ArrayList<>();
-		var result = isbnSet.stream()
+		var result = sortedIsbnSet.stream()
 				.map(isbn -> {
                     var book = bookMap.get(isbn);
                     var lock = book.readLock();
@@ -357,9 +362,12 @@ public class TwoLevelLockingConcurrentCertainBookStore implements BookStore, Sto
 			throw new BookStoreException(BookStoreConstants.NULL_INPUT);
 		}
 
-		// Check that all ISBNs that we rate are there to start with.
+        List<Integer> sortedIsbnSet = new ArrayList<>(isbnSet);
+        sortedIsbnSet.sort(Comparator.naturalOrder());
+
+        // Check that all ISBNs that we rate are there to start with.
         lock.readLock().lock();
-		for (Integer ISBN : isbnSet) {
+		for (Integer ISBN : sortedIsbnSet) {
             try {
                 validateISBNInStock(ISBN);
             } catch (BookStoreException e) {
@@ -369,7 +377,7 @@ public class TwoLevelLockingConcurrentCertainBookStore implements BookStore, Sto
 		}
 
         List<Lock> locks = new ArrayList<>();
-		var result = isbnSet.stream()
+		var result = sortedIsbnSet.stream()
 				.map(isbn -> {
                     var book = bookMap.get(isbn);
                     var lock = book.readLock();
@@ -398,8 +406,11 @@ public class TwoLevelLockingConcurrentCertainBookStore implements BookStore, Sto
         List<Lock> locks = new ArrayList<>();
 
         lock.readLock().lock();
-		List<BookStoreBook> listAllEditorPicks = bookMap.entrySet().stream()
-				.map(pair -> pair.getValue())
+        List<Integer> sortedIsbns = new ArrayList<>(bookMap.keySet());
+        sortedIsbns.sort(Comparator.naturalOrder());
+
+		List<BookStoreBook> listAllEditorPicks = sortedIsbns.stream()
+				.map(isbn -> bookMap.get(isbn))
 				.filter(book -> {
                     var lock = book.readLock();
                     locks.add(lock);

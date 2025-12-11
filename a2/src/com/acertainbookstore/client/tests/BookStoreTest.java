@@ -112,6 +112,16 @@ public class BookStoreTest {
 				false);
 	}
 
+    /**
+     * Helper method to get number of copies of a single book by ISBN.
+     */
+    private int getNumCopies(int isbn) throws BookStoreException {
+        Set<Integer> isbnSet = new HashSet<Integer>();
+        isbnSet.add(isbn);
+        List<StockBook> books = storeManager.getBooksByISBN(isbnSet);
+        return books.get(0).getNumCopies();
+    }
+
 	/**
 	 * Method to add a book, executed before every test case is run.
 	 *
@@ -363,7 +373,263 @@ public class BookStoreTest {
 				&& booksInStorePreTest.size() == booksInStorePostTest.size());
 	}
 
-	/**
+        /**
+         * Test for concurrency 1:
+         * We have two threads one for each client, C1 and C2.
+         * C1 calls buyBooks, C2 calls addCopies on the same book.
+         * After a fixed number of operations, the number of copies must be same as before.
+         */
+        @Test
+        public void testConcurrentBuyAndAddCopiesKeepsStock() throws Exception {
+            storeManager.removeAllBooks();
+
+            int initialCopies = 1000;
+            addBooks(TEST_ISBN, initialCopies);
+            final int operations = 500;
+
+            final Set<BookCopy> booksToBuy = new HashSet<BookCopy>();
+            booksToBuy.add(new BookCopy(TEST_ISBN, 1));
+            final Set<BookCopy> booksToAdd = new HashSet<BookCopy>();
+            booksToAdd.add(new BookCopy(TEST_ISBN, 1));
+            final boolean[] failed = new boolean[1];
+
+            Thread buyer = new Thread(new Runnable() {
+                public void run() {
+                    for (int i = 0; i < operations; i++) {
+                        try {
+                            client.buyBooks(booksToBuy);
+                        } catch (BookStoreException ex) {
+                            failed[0] = true;
+                            return;
+                        }
+                    }
+                }
+            });
+
+            Thread adder = new Thread(new Runnable() {
+                public void run() {
+                    for (int i = 0; i < operations; i++) {
+                        try {
+                            storeManager.addCopies(booksToAdd);
+                        } catch (BookStoreException ex) {
+                            failed[0] = true;
+                            return;
+                        }
+                    }
+                }
+            });
+
+            buyer.start();
+            adder.start();
+            buyer.join();
+            adder.join();
+
+            assertFalse("Concurrent buy and add operations failed", failed[0]);
+
+            int finalCopies = getNumCopies(TEST_ISBN);
+            assertEquals("Final number of copies and initial should be same", initialCopies, finalCopies);
+        }
+
+        /**
+         * Test for concurrency 2:
+         * The writer thread repeatedly buys and replenishes a fixed collection of books,
+         * while the reader thread repeatedly calls getBooksByISBN and checks snapshots are consistent.
+         */
+        @Test
+        public void testConcurrentBuyReplenishAndGetBooksSnapshotsConsistent() throws Exception {
+            storeManager.removeAllBooks();
+
+            final int initialCopies = 10;
+            final int isbn1 = TEST_ISBN;
+            final int isbn2 = TEST_ISBN + 1;
+            final int isbn3 = TEST_ISBN + 2;
+
+            addBooks(isbn1, initialCopies);
+            addBooks(isbn2, initialCopies);
+            addBooks(isbn3, initialCopies);
+
+            final Set<Integer> isbnSet = new HashSet<Integer>();
+            isbnSet.add(isbn1);
+            isbnSet.add(isbn2);
+            isbnSet.add(isbn3);
+
+            final boolean[] inconsistent = new boolean[1];
+
+            Thread writer = new Thread(new Runnable() {
+                public void run() {
+                    Set<BookCopy> toBuy = new HashSet<BookCopy>();
+                    toBuy.add(new BookCopy(isbn1, 1));
+                    toBuy.add(new BookCopy(isbn2, 1));
+                    toBuy.add(new BookCopy(isbn3, 1));
+
+                    Set<BookCopy> toAdd = new HashSet<BookCopy>();
+                    toAdd.add(new BookCopy(isbn1, 1));
+                    toAdd.add(new BookCopy(isbn2, 1));
+                    toAdd.add(new BookCopy(isbn3, 1));
+
+                    for (int i = 0; i < 200; i++) {
+                        try {
+                            client.buyBooks(toBuy);
+                            storeManager.addCopies(toAdd);
+                        } catch (BookStoreException ex) {
+                            inconsistent[0] = true;
+                            return;
+                        }
+                    }
+                }
+            });
+
+            Thread reader = new Thread(new Runnable() {
+                public void run() {
+                    for (int i = 0; i < 400; i++) {
+                        try {
+                            List<StockBook> snapshot = storeManager.getBooksByISBN(isbnSet);
+                            if (snapshot.size() != 3) {
+                                inconsistent[0] = true;
+                                return;
+                            }
+
+                            int copies0 = snapshot.get(0).getNumCopies();
+                            boolean allSame = true;
+                            for (StockBook b : snapshot) {
+                                if (b.getNumCopies() != copies0) {
+                                    allSame = false;
+                                    break;
+                                }
+                            }
+                            if (!allSame) {
+                                inconsistent[0] = true;
+                                return;
+                            }
+
+                            if (copies0 != initialCopies && copies0 != initialCopies - 1) {
+                                inconsistent[0] = true;
+                                return;
+                            }
+                        } catch (BookStoreException ex) {
+                            inconsistent[0] = true;
+                            return;
+                        }
+                    }
+                }
+            });
+
+            writer.start();
+            reader.start();
+            writer.join();
+            reader.join();
+
+            assertFalse("Inconsistency in book copies", inconsistent[0]);
+        }
+
+        /**
+         * Concurrency test 3:
+         * Two buyer threads repeatedly buy 1 copy each.
+         * Final number of copies must match initialCopies - totalBuys.
+         */
+        @Test
+        public void testConcurrentBuysNoLostUpdates() throws Exception {
+            storeManager.removeAllBooks();
+
+            final int operationsPerThread = 200;
+            int initialCopies = 2 * operationsPerThread + 10;
+            addBooks(TEST_ISBN, initialCopies);
+            final boolean[] failed = new boolean[1];
+
+            Runnable buyerTask = new Runnable() {
+                @Override
+                public void run() {
+                    Set<BookCopy> toBuy = new HashSet<BookCopy>();
+                    toBuy.add(new BookCopy(TEST_ISBN, 1));
+                    for (int i = 0; i < operationsPerThread; i++) {
+                        try {
+                            client.buyBooks(toBuy);
+                        } catch (BookStoreException ex) {
+                            failed[0] = true;
+                            return;
+                        }
+                    }
+                }
+            };
+
+            Thread t1 = new Thread(buyerTask);
+            Thread t2 = new Thread(buyerTask);
+
+            t1.start();
+            t2.start();
+            t1.join();
+            t2.join();
+
+            assertFalse("Exception throwen", failed[0]);
+
+            int finalCopies = getNumCopies(TEST_ISBN);
+            int expected = initialCopies - 2 * operationsPerThread;
+            assertEquals("Copies do not match after concurrent buys", expected, finalCopies);
+        }
+
+        /**
+         * Concurrency test 4:
+         * One thread adds new books with unique ISBNs,
+         * another thread repeatedly calls getBooks().
+         * We check that no exceptions or invalid data appear.
+         */
+        @Test
+        public void testConcurrentAddBooksAndGetBooksNoExceptions() throws Exception {
+            storeManager.removeAllBooks();
+
+            final boolean[] failed = new boolean[1];
+            final int writerIterations = 200;
+            final int readerIterations = 400;
+
+            Thread writer = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    for (int i = 0; i < writerIterations; i++) {
+                        try {
+                            int isbn = TEST_ISBN + i + 1000;
+                            addBooks(isbn, NUM_COPIES);
+                        } catch (BookStoreException ex) {
+                            failed[0] = true;
+                            return;
+                        }
+                    }
+                }
+            });
+
+            Thread reader = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    for (int i = 0; i < readerIterations; i++) {
+                        try {
+                            List<StockBook> all = storeManager.getBooks();
+                            for (StockBook b : all) {
+                                if (b == null || b.getTitle() == null) {
+                                    failed[0] = true;
+                                    return;
+                                }
+                            }
+                        } catch (BookStoreException ex) {
+                            failed[0] = true;
+                            return;
+                        } catch (RuntimeException ex) {
+                            failed[0] = true;
+                            return;
+                        }
+                    }
+                }
+            });
+
+            writer.start();
+            reader.start();
+            writer.join();
+            reader.join();
+
+            assertFalse("Exception or invalid data during add/getBooks", failed[0]);
+        }
+
+
+
+    /**
 	 * Tear down after class.
 	 *
 	 * @throws BookStoreException

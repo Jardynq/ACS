@@ -247,7 +247,10 @@ public class TwoLevelLockingConcurrentCertainBookStore implements BookStore, Sto
 			throw new BookStoreException(BookStoreConstants.NULL_INPUT);
 		}
 
-		// Check that all ISBNs that we buy are there first.
+        List<BookCopy> sortedBookCopiesToBuy = new ArrayList<>(bookCopiesToBuy);
+        sortedBookCopiesToBuy.sort(Comparator.comparingInt(BookCopy::getISBN));
+
+        // Check that all ISBNs that we buy are there first.
 		int isbn;
 		LockedBookStoreBook book;
 		Boolean saleMiss = false;
@@ -257,7 +260,7 @@ public class TwoLevelLockingConcurrentCertainBookStore implements BookStore, Sto
         List<Lock> locks = new ArrayList<>();
 
         lock.readLock().lock();
-		for (BookCopy bookCopyToBuy : bookCopiesToBuy) {
+		for (BookCopy bookCopyToBuy : sortedBookCopiesToBuy) {
             try {
                 validate(bookCopyToBuy);
             } catch (BookStoreException e) {
@@ -295,7 +298,7 @@ public class TwoLevelLockingConcurrentCertainBookStore implements BookStore, Sto
 		}
 
 		// Then make the purchase.
-		for (BookCopy bookCopyToBuy : bookCopiesToBuy) {
+		for (BookCopy bookCopyToBuy : sortedBookCopiesToBuy) {
 			book = bookMap.get(bookCopyToBuy.getISBN());
 			book.buyCopies(bookCopyToBuy.getNumCopies());
 		}

@@ -23,7 +23,7 @@ public class Worker implements Callable<WorkerRunResult> {
     private int numTotalFrequentBookStoreInteraction = 0;
 
     public Worker(WorkloadConfiguration config) {
-	configuration = config;
+	    configuration = config;
     }
 
     /**
@@ -137,7 +137,7 @@ public class Worker implements Callable<WorkerRunResult> {
 
         Set<BookCopy> booksToReplenish = new HashSet<>();
         for (int i = 0; i < k; i++) {
-            var isbn = sortedBooks.get(i).getISBN();
+            int isbn = sortedBooks.get(i).getISBN();
             booksToReplenish.add(new BookCopy(isbn, addCopies));
         }
 

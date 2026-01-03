@@ -39,8 +39,6 @@ public class BookSetGenerator {
         Collections.shuffle(list, random);
 
         return new HashSet<>(list.subList(0, num));
-
-        return sampledIsbns;
     }
 
     /**
@@ -52,24 +50,24 @@ public class BookSetGenerator {
     public Set<StockBook> nextSetOfStockBooks(int num) {
         if (num < 0) {
             throw new IllegalArgumentException("num must be 0 or more");
-            Set<StockBook> stockBooks = new HashSet<>();
         }
 
-            while (stockBooks.size() < num) {
-                int isbn = nextIsbn++;
-                String title = "Title" + isbn;
-                String author = "Author" + isbn;
-                float price = 50 + random.nextInt(201);
-                int numCopies = 1 + random.nextInt(20);
+        Set<StockBook> stockBooks = new HashSet<>();
+        while (stockBooks.size() < num) {
+            int isbn = nextIsbn++;
+            String title = "Title" + isbn;
+            String author = "Author" + isbn;
+            float price = 50 + random.nextInt(201);
+            int numCopies = 1 + random.nextInt(20);
 
-                long numSaleMisses = 0;
-                long numTimesRated = 0;
-                long totalRating = 0;
-                boolean editorPick = false;
+            long numSaleMisses = 0;
+            long numTimesRated = 0;
+            long totalRating = 0;
+            boolean editorPick = false;
 
-                stockBooks.add(new ImmutableStockBook(isbn, title, author, price, numCopies, numSaleMisses,
-                        numTimesRated, totalRating, editorPick));
-            }
+            stockBooks.add(new ImmutableStockBook(isbn, title, author, price, numCopies, numSaleMisses,
+                    numTimesRated, totalRating, editorPick));
+        }
         return stockBooks;
     }
 }

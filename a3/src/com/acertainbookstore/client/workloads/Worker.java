@@ -119,7 +119,6 @@ public class Worker implements Callable<WorkerRunResult> {
         if (!booksToAdd.isEmpty()) {
             configuration.getStockManager().addBooks(booksToAdd);
         }
-        // TODO: Add code for New Stock Acquisition Interaction
     }
 
     /**

@@ -91,7 +91,31 @@ public class CertainWorkload {
 	 * @param workerRunResults
 	 */
 	public static void reportMetric(List<WorkerRunResult> workerRunResults) {
-		// TODO: You should aggregate metrics and output them for plotting here
+        // First verify that the metrics follow the specified criteria
+        // Just use asserts to crash if the criteria are not met since this is dev only
+        var totalSuccessfulInteractions = 0;
+        var totalInteractions = 0;
+        var totalLatencyInNanoSecs = 0L;
+        var aggThroughput = 0.0;
+        for (var result: workerRunResults) {
+            totalInteractions += result.getTotalRuns();
+            totalSuccessfulInteractions += result.getSuccessfulInteractions();
+            totalLatencyInNanoSecs += result.getElapsedTimeInNanoSecs();
+
+            aggThroughput += (float)result.getSuccessfulInteractions() / (float)result.getElapsedTimeInNanoSecs();
+        }
+        var successRate = (totalSuccessfulInteractions * 100.0) / totalInteractions;
+        assert successRate >= 99.0 : "Success rate is below 99%";
+
+        // Wtf is "frequent bookstore interactions"??
+        // Idk how to check for 60% client interactions
+        // And is 60% success or total?
+
+        var avgLatencyInNanoSecs = totalLatencyInNanoSecs / totalSuccessfulInteractions;
+
+        System.out.println("Success Rate: " + successRate);
+        System.out.println("Average Latency (ms): " + (avgLatencyInNanoSecs / 1_000_000.0));
+        System.out.println("Aggregate Throughput (ops/sec): " + (aggThroughput * 1_000_000_000.0));
 	}
 
 	/**

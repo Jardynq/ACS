@@ -93,25 +93,26 @@ public class CertainWorkload {
 	public static void reportMetric(List<WorkerRunResult> workerRunResults) {
         // First verify that the metrics follow the specified criteria
         // Just use asserts to crash if the criteria are not met since this is dev only
-        var totalSuccessfulInteractions = 0;
         var totalInteractions = 0;
+        var totalSuccessfulInteractions = 0;
+        var totalCustomerInteractions = 0;
         var totalLatencyInNanoSecs = 0L;
         var aggThroughput = 0.0;
         for (var result: workerRunResults) {
             totalInteractions += result.getTotalRuns();
             totalSuccessfulInteractions += result.getSuccessfulInteractions();
             totalLatencyInNanoSecs += result.getElapsedTimeInNanoSecs();
+            totalCustomerInteractions += result.getTotalFrequentBookStoreInteractionRuns();
 
             aggThroughput += (float)result.getSuccessfulInteractions() / (float)result.getElapsedTimeInNanoSecs();
         }
+        var avgLatencyInNanoSecs = totalLatencyInNanoSecs / totalSuccessfulInteractions;
+
         var successRate = (totalSuccessfulInteractions * 100.0) / totalInteractions;
         assert successRate >= 99.0 : "Success rate is below 99%";
 
-        // Wtf is "frequent bookstore interactions"??
-        // Idk how to check for 60% client interactions
-        // And is 60% success or total?
-
-        var avgLatencyInNanoSecs = totalLatencyInNanoSecs / totalSuccessfulInteractions;
+        var customerRate = (totalCustomerInteractions * 100.0) / totalInteractions;
+        assert customerRate <= 62.5 && customerRate >= 57.5: "Customer interaction rate is not around 60%";
 
         System.out.println("Success Rate: " + successRate);
         System.out.println("Average Latency (ms): " + (avgLatencyInNanoSecs / 1_000_000.0));

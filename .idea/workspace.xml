@@ -6,8 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="6d3bdc8b-b690-4ce1-80d4-33b1e01b897d" name="Changes" comment="Added a3">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/a3/src/com/acertainbookstore/client/workloads/BookSetGenerator.java" beforeDir="false" afterPath="$PROJECT_DIR$/a3/src/com/acertainbookstore/client/workloads/BookSetGenerator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/a3/src/com/acertainbookstore/client/workloads/CertainWorkload.java" beforeDir="false" afterPath="$PROJECT_DIR$/a3/src/com/acertainbookstore/client/workloads/CertainWorkload.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/a3/src/com/acertainbookstore/client/workloads/Worker.java" beforeDir="false" afterPath="$PROJECT_DIR$/a3/src/com/acertainbookstore/client/workloads/Worker.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

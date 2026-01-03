@@ -98,7 +98,24 @@ public class Worker implements Callable<WorkerRunResult> {
      * @throws BookStoreException
      */
     private void runRareStockManagerInteraction() throws BookStoreException {
-	    // TODO: Add code for New Stock Acquisition Interaction
+        List<StockBook> existingBooks = configuration.getStockManager().getBooks();
+
+        Set<Integer> existingIsbns = new HashSet<>();
+        for (StockBook book : existingBooks) {
+            existingIsbns.add(book.getISBN());
+        }
+        Set<StockBook> newBooks = configuration.getBookSetGenerator()
+                .nextSetOfStockBooks(configuration.getNumBooksToAdd());
+
+        Set<StockBook> booksToAdd = new HashSet<>();
+        for (StockBook book : newBooks) {
+            if (!existingIsbns.contains(book.getISBN())) {
+                booksToAdd.add(book);
+            }
+        }
+        configuration.getStockManager().addBooks(booksToAdd);
+
+        // TODO: Add code for New Stock Acquisition Interaction
     }
 
     /**
@@ -107,7 +124,20 @@ public class Worker implements Callable<WorkerRunResult> {
      * @throws BookStoreException
      */
     private void runFrequentStockManagerInteraction() throws BookStoreException {
-	    // TODO: Add code for Stock Replenishment Interaction
+        List<StockBook> books = configuration.getStockManager().getBooks();
+        List<StockBook> sortedBooks = new ArrayList<>(books);
+        sortedBooks.sort(Comparator.comparingInt(StockBook::getNumCopies));
+
+        int k = Math.min(configuration.getNumBooksWithLeastCopies(), sortedBooks.size());
+        int addCopies = configuration.getNumAddCopies();
+
+        Set<StockBook> booksToReplenish = new HashSet<>();
+        for (int i = 0; i < k; i++) {
+            StockBook book = sortedBooks.get(i).getISBN();
+            booksToReplenish.add(new BookCopy(book.getISBN(), addCopies));
+        }
+
+        configuration.getStockManager().addCopies(booksToReplenish);
     }
 
     /**

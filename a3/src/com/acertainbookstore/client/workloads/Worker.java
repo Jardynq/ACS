@@ -113,8 +113,10 @@ public class Worker implements Callable<WorkerRunResult> {
                 booksToAdd.add(book);
             }
         }
-        configuration.getStockManager().addBooks(booksToAdd);
 
+        if (!booksToAdd.isEmpty()) {
+            configuration.getStockManager().addBooks(booksToAdd);
+        }
         // TODO: Add code for New Stock Acquisition Interaction
     }
 
@@ -137,7 +139,9 @@ public class Worker implements Callable<WorkerRunResult> {
             booksToReplenish.add(new BookCopy(book.getISBN(), addCopies));
         }
 
-        configuration.getStockManager().addCopies(booksToReplenish);
+        if (!booksToReplenish.isEmpty()) {
+            configuration.getStockManager().addCopies(booksToReplenish);
+        }
     }
 
     /**
@@ -146,7 +150,31 @@ public class Worker implements Callable<WorkerRunResult> {
      * @throws BookStoreException
      */
     private void runFrequentBookStoreInteraction() throws BookStoreException {
-	    // TODO: Add code for Customer Interaction
+	    List<Book> books = configuration.getBookStore().getEditorPicks(configuration.getNumEditorPicksToGet());
+        if (books.isEmpty()) {
+            return;
+        }
+
+        Set<Integer> isbnsToBuy = new HashSet<>();
+        for (Book book : books) {
+            isbnsToBuy.add(book.getISBN());
+        }
+
+        int wantedBooks = configuration.getNumBooksToBuy();
+        int canBuy = Math.min(wantedBooks, isbnsToBuy.size());
+
+        Set<Integer> sampledIsbns = configuration.getBookSetGenerator()
+            .sampleFromSetOfISBNs(isbnsToBuy, canBuy);
+
+        int copiesPerBook = configuration.getNumBookCopiesToBuy();
+        Set<BookCopy> booksToBuy = new HashSet<>();
+        for (int isbn : sampledIsbns) {
+            booksToBuy.add(new BookCopy(isbn, copiesPerBook));
+        }
+
+        if (!booksToBuy.isEmpty()) {
+            configuration.getBookStore().buyBooks(booksToBuy);
+        }
     }
 
 }

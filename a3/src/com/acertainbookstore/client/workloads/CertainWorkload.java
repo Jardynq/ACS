@@ -118,17 +118,20 @@ public class CertainWorkload {
         long totalInteractions = 0;
         long totalSuccessfulInteractions = 0;
         long totalCustomerInteractions = 0;
+        long totalSuccessfulCustomerInteractions = 0;
         long totalElapsedTime = 0;
         double aggThroughput = 0.0;
         for (WorkerRunResult result: workerRunResults) {
             totalInteractions += result.getTotalRuns();
             totalSuccessfulInteractions += result.getSuccessfulInteractions();
             totalCustomerInteractions += result.getTotalFrequentBookStoreInteractionRuns();
+            totalSuccessfulCustomerInteractions += result.getSuccessfulFrequentBookStoreInteractionRuns();
             totalElapsedTime += result.getElapsedTimeInNanoSecs();
 
-            aggThroughput += (double)result.getSuccessfulInteractions() / (double)result.getElapsedTimeInNanoSecs();
+            aggThroughput += (double)result.getSuccessfulFrequentBookStoreInteractionRuns()
+                    / (double)result.getElapsedTimeInNanoSecs();
         }
-        double avgLatency = (double)totalElapsedTime / (double)totalSuccessfulInteractions;
+        double avgLatency = (double)totalElapsedTime / (double)totalSuccessfulCustomerInteractions;
 
         double successRate = (totalSuccessfulInteractions * 100.0) / totalInteractions;
         assert successRate >= 99.0 : "Success rate is below 99%";
@@ -140,7 +143,7 @@ public class CertainWorkload {
         double totalLatencySquaredError = 0.0;
         for (WorkerRunResult result: workerRunResults) {
             var dt = (double)result.getElapsedTimeInNanoSecs();
-            var si = (double)result.getSuccessfulInteractions();
+            var si = (double)result.getSuccessfulFrequentBookStoreInteractionRuns();
 
             double threadThroughput = si / dt;
             double throughputDiff = threadThroughput - (aggThroughput / count);

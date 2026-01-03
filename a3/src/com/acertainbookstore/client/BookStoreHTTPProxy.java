@@ -86,7 +86,6 @@ public class BookStoreHTTPProxy implements BookStore {
 
     public void restartServer() throws BookStoreException {
         String urlString = serverAddress + "/" + BookStoreMessageTag.RESTART;
-        System.out.println("Restarting server via proxy at: " + urlString);
         BookStoreRequest bookStoreRequest = BookStoreRequest.newGetRequest(urlString);
         BookStoreUtility.performHttpExchange(client, bookStoreRequest, serializer.get());
     }

@@ -34,7 +34,7 @@ public class CertainWorkload {
     public static String csvPath = "workload_metrics.csv";
     public static final int maxThreads = 32;
     public static final int numWarmupRuns = 100;
-    public static final int numRuns = 1000;
+    public static final int numRuns = 5000;
     public static final int initialBooks = 10;
     public static boolean localTest = false;
 

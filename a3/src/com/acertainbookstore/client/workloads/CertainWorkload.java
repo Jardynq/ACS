@@ -102,8 +102,10 @@ public class CertainWorkload {
 	 */
 	public static void initializeBookStoreData(BookStore bookStore,
 			StockManager stockManager) throws BookStoreException {
+        bookStore = bookStore;
+        stockManager = stockManager;
 
-		// TODO: You should initialize data for your bookstore here
+
 
 	}
 }

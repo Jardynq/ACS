@@ -5,6 +5,8 @@ package com.acertainbookstore.utils;
  * bookstore.
  */
 public enum BookStoreMessageTag {
+    /** FOR DEBUGGING/BENCHMARKING ONLY **/
+    RESTART,
 
 	/** The tag for the add book message. */
 	ADDBOOKS,

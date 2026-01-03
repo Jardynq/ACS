@@ -28,7 +28,7 @@ for label, df in datasets.items():
     )
 
 plt.title(f'Latency vs Threads')
-plt.suptitle(f'Benchmark Configuration: Runs={runs}, Warmup={warmup}', fontsize=12)
+plt.suptitle(f'Benchmark Configuration: Runs={runs}, Warmup={warmup}', fontsize=11)
 plt.xlabel('Number of Threads')
 plt.ylabel('Latency [us]')
 plt.legend()
@@ -51,7 +51,7 @@ for label, df in datasets.items():
     )
 
 plt.title(f'Throughput vs Threads')
-plt.suptitle(f'Benchmark Configuration: Runs={runs}, Warmup={warmup}', fontsize=12)
+plt.suptitle(f'Benchmark Configuration: Runs={runs}, Warmup={warmup}', fontsize=11)
 plt.xlabel('Number of Threads')
 plt.ylabel('Throughput [op/s]')
 plt.legend()

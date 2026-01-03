@@ -31,7 +31,7 @@ public class CertainWorkload {
     public static final int maxThreads = 32;
     public static final int numWarmupRuns = 100;
     public static final int numRuns = 1000;
-    public static boolean localTest = false;
+    public static boolean localTest = true;
 
 	/**
 	 * @param args
@@ -92,6 +92,7 @@ public class CertainWorkload {
             // Finished initialization, stop the clients if not localTest
             if (!localTest) {
                 assert bookStore instanceof BookStoreHTTPProxy;
+                ((BookStoreHTTPProxy) bookStore).restartServer();
                 ((BookStoreHTTPProxy) bookStore).stop();
                 ((StockManagerHTTPProxy) stockManager).stop();
             }

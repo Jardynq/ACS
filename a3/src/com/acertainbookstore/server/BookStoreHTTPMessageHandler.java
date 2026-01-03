@@ -84,6 +84,13 @@ public class BookStoreHTTPMessageHandler extends AbstractHandler {
 			System.err.println("No message tag.");
 		} else {
 			switch (messageTag) {
+            case RESTART:
+                myBookStore = new CertainBookStore();
+                BookStoreResponse bookStoreResponse = new BookStoreResponse();
+                byte[] serializedResponseContent = serializer.get().serialize(bookStoreResponse);
+                response.getOutputStream().write(serializedResponseContent);
+                break;
+
 			case REMOVEBOOKS:
 				removeBooks(request, response);
 				break;

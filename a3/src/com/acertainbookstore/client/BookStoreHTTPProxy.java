@@ -2,6 +2,7 @@ package com.acertainbookstore.client;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.eclipse.jetty.client.HttpClient;
@@ -82,6 +83,13 @@ public class BookStoreHTTPProxy implements BookStore {
 	public void setServerAddress(String serverAddress) {
 		this.serverAddress = serverAddress;
 	}
+
+    public void restartServer() throws BookStoreException {
+        String urlString = serverAddress + "/" + BookStoreMessageTag.RESTART;
+        System.out.println("Restarting server via proxy at: " + urlString);
+        BookStoreRequest bookStoreRequest = BookStoreRequest.newGetRequest(urlString);
+        BookStoreUtility.performHttpExchange(client, bookStoreRequest, serializer.get());
+    }
 
 	/*
 	 * (non-Javadoc)

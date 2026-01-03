@@ -31,7 +31,7 @@ public class CertainWorkload {
     public static final int maxThreads = 32;
     public static final int numWarmupRuns = 100;
     public static final int numRuns = 1000;
-    public static boolean localTest = true;
+    public static boolean localTest = false;
 
 	/**
 	 * @param args
@@ -47,7 +47,7 @@ public class CertainWorkload {
             csvPath = "workload_metrics_local.csv";
         }
         try (FileWriter csvWriter = new FileWriter(csvPath)) {
-            csvWriter.write("threads,runs,runs_warmup,latency[ms],latency_std,throughput[op/s],throughput_std\n"); // number of threads
+            csvWriter.write("threads,runs,runs_warmup,latency[us],latency_std,throughput[op/s],throughput_std\n"); // number of threads
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -108,20 +108,21 @@ public class CertainWorkload {
 	public static void reportMetric(List<WorkerRunResult> workerRunResults) {
         // First verify that the metrics follow the specified criteria
         // Just use asserts to crash if the criteria are not met since this is dev only
+        long count = workerRunResults.size();
         long totalInteractions = 0;
         long totalSuccessfulInteractions = 0;
         long totalCustomerInteractions = 0;
-        long totalLatencyInNanoSecs = 0L;
+        long totalElapsedTime = 0;
         double aggThroughput = 0.0;
         for (WorkerRunResult result: workerRunResults) {
             totalInteractions += result.getTotalRuns();
             totalSuccessfulInteractions += result.getSuccessfulInteractions();
-            totalLatencyInNanoSecs += result.getElapsedTimeInNanoSecs();
             totalCustomerInteractions += result.getTotalFrequentBookStoreInteractionRuns();
+            totalElapsedTime += result.getElapsedTimeInNanoSecs();
 
             aggThroughput += (double)result.getSuccessfulInteractions() / (double)result.getElapsedTimeInNanoSecs();
         }
-        long avgLatencyInNanoSecs = totalLatencyInNanoSecs / totalSuccessfulInteractions;
+        double avgLatency = (double)totalElapsedTime / (double)totalSuccessfulInteractions;
 
         double successRate = (totalSuccessfulInteractions * 100.0) / totalInteractions;
         assert successRate >= 99.0 : "Success rate is below 99%";
@@ -132,21 +133,28 @@ public class CertainWorkload {
         double totalThroughputSquaredError = 0.0;
         double totalLatencySquaredError = 0.0;
         for (WorkerRunResult result: workerRunResults) {
-            double threadThroughput = (double)result.getSuccessfulInteractions() / (double)result.getElapsedTimeInNanoSecs();
-            double throughputDiff = threadThroughput - (aggThroughput / workerRunResults.size());
-            totalThroughputSquaredError += throughputDiff * throughputDiff;
+            var dt = (double)result.getElapsedTimeInNanoSecs();
+            var si = (double)result.getSuccessfulInteractions();
 
-            long threadLatency = result.getElapsedTimeInNanoSecs();
-            long latencyDiff = threadLatency - avgLatencyInNanoSecs;
-            totalLatencySquaredError += latencyDiff * latencyDiff;
+            double threadThroughput = si / dt;
+            double throughputDiff = threadThroughput - (aggThroughput / count);
+            totalThroughputSquaredError += (throughputDiff * throughputDiff) / count;
+
+            double threadLatency = dt / si;
+            double latencyDiff = threadLatency - avgLatency;
+            totalLatencySquaredError += (latencyDiff * latencyDiff) / count;
         }
+        double latencyStdDev = Math.sqrt(totalLatencySquaredError);
+        double throughputStdDev = Math.sqrt(totalThroughputSquaredError);
 
         // Print the metrics as mentioned in the assigment text
         System.out.println("Number of threads: " + workerRunResults.size());
         System.out.println("Success Rate: " + successRate);
         System.out.println("Customer Rate: " + customerRate);
-        System.out.println("Average Latency (us): " + Math.round(avgLatencyInNanoSecs / 1_000.0));
+        System.out.println("Average Latency (us): " + Math.round(avgLatency / 1_000.0));
+        System.out.println("Average Latency std. dev.: " + Math.round(latencyStdDev / 1_000.0));
         System.out.println("Aggregate Throughput (ops/sec): " + Math.round(aggThroughput * 1_000_000_000.0));
+        System.out.println("Aggregate Throughput std. dev.: " + Math.round(throughputStdDev * 1_000_000_000.0));
 
         // Append to csv for plotting
         try (FileWriter csvWriter = new FileWriter(csvPath, true)) {
@@ -156,13 +164,13 @@ public class CertainWorkload {
             csvWriter.append(",");
             csvWriter.append(String.valueOf(numWarmupRuns));
             csvWriter.append(",");
-            csvWriter.append(String.valueOf(avgLatencyInNanoSecs / 1_000_000.0));
+            csvWriter.append(String.valueOf(avgLatency / 1_000.0));
             csvWriter.append(",");
-            csvWriter.append(String.valueOf(totalLatencySquaredError / workerRunResults.size() / 1_000_000.0));
+            csvWriter.append(String.valueOf(latencyStdDev / 1_000.0));
             csvWriter.append(",");
             csvWriter.append(String.valueOf(aggThroughput * 1_000_000_000.0));
             csvWriter.append(",");
-            csvWriter.append(String.valueOf(totalThroughputSquaredError / workerRunResults.size() * 1_000_000_000.0));
+            csvWriter.append(String.valueOf(throughputStdDev * 1_000_000_000.0));
             csvWriter.append("\n");
         } catch (Exception e) {
             e.printStackTrace();

@@ -11,13 +11,12 @@ datasets = {'server': df1, 'local': df2}
 runs = df1['runs'].iloc[0]
 warmup = df1['runs_warmup'].iloc[0]
 
-
 plt.figure(figsize=(10, 6))
 for label, df in datasets.items():
     line, = plt.plot(
         df['threads'],
         df['latency[us]'],
-        marker='o',
+        marker= 'o' if label == 'server' else 's',
         label=f'Latency ({label})\nMean std dev: {df["latency_std"].mean():.3f} us'
     )
     plt.fill_between(
@@ -40,7 +39,7 @@ for label, df in datasets.items():
     line, = plt.plot(
         df['threads'],
         df['throughput[op/s]'],
-        marker='s',
+        marker= 'o' if label == 'server' else 's',
         label=f'Throughput ({label})\nMean std dev: {df["throughput_std"].mean():.3f} op/s'
     )
     plt.fill_between(

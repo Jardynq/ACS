@@ -194,15 +194,11 @@ public class CertainWorkload {
         var rand = new java.util.Random(42);
         var bookSetGenerator = new BookSetGenerator(42);
         var booksToAdd = bookSetGenerator.nextSetOfStockBooks(initialBooks);
-        stockManager.addBooks(booksToAdd);
-
-        var booksList = new ArrayList<>(booksToAdd);
-        java.util.Collections.shuffle(booksList, rand);
-
         var picks = new HashSet<BookEditorPick>();
-        for (StockBook book : booksList) {
+        for (StockBook book : booksToAdd) {
             picks.add(new BookEditorPick(book.getISBN(), rand.nextBoolean()));
         }
+        stockManager.addBooks(booksToAdd);
         stockManager.updateEditorPicks(picks);
     }
 }

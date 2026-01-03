@@ -3,9 +3,12 @@
  */
 package com.acertainbookstore.client.workloads;
 
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.Callable;
 
+import com.acertainbookstore.business.Book;
+import com.acertainbookstore.business.BookCopy;
+import com.acertainbookstore.business.StockBook;
 import com.acertainbookstore.utils.BookStoreException;
 
 /**
@@ -39,14 +42,13 @@ public class Worker implements Callable<WorkerRunResult> {
             float percentFrequentStockManagerInteraction = configuration.getPercentFrequentStockManagerInteraction();
 
             if (chooseInteraction < percentRareStockManagerInteraction) {
-            runRareStockManagerInteraction();
-            } else if (chooseInteraction < percentRareStockManagerInteraction
-                + percentFrequentStockManagerInteraction) {
-            runFrequentStockManagerInteraction();
+                runRareStockManagerInteraction();
+            } else if (chooseInteraction < percentRareStockManagerInteraction + percentFrequentStockManagerInteraction) {
+                runFrequentStockManagerInteraction();
             } else {
-            numTotalFrequentBookStoreInteraction++;
-            runFrequentBookStoreInteraction();
-            numSuccessfulFrequentBookStoreInteraction++;
+                numTotalFrequentBookStoreInteraction++;
+                runFrequentBookStoreInteraction();
+                numSuccessfulFrequentBookStoreInteraction++;
             }
         } catch (BookStoreException ex) {
             return false;
@@ -83,7 +85,7 @@ public class Worker implements Callable<WorkerRunResult> {
         while (count++ <= configuration.getNumActualRuns()) {
             chooseInteraction = rand.nextFloat() * 100f;
             if (runInteraction(chooseInteraction)) {
-            successfulInteractions++;
+                successfulInteractions++;
             }
         }
         endTimeInNanoSecs = System.nanoTime();
@@ -133,10 +135,10 @@ public class Worker implements Callable<WorkerRunResult> {
         int k = Math.min(configuration.getNumBooksWithLeastCopies(), sortedBooks.size());
         int addCopies = configuration.getNumAddCopies();
 
-        Set<StockBook> booksToReplenish = new HashSet<>();
+        Set<BookCopy> booksToReplenish = new HashSet<>();
         for (int i = 0; i < k; i++) {
-            StockBook book = sortedBooks.get(i).getISBN();
-            booksToReplenish.add(new BookCopy(book.getISBN(), addCopies));
+            var isbn = sortedBooks.get(i).getISBN();
+            booksToReplenish.add(new BookCopy(isbn, addCopies));
         }
 
         if (!booksToReplenish.isEmpty()) {

@@ -24,6 +24,11 @@ public class BookSetGenerator {
         this.nextIsbn = 10000;
     }
 
+    public BookSetGenerator(int seed) {
+        this.random = new Random(seed);
+        this.nextIsbn = 10000;
+    }
+
     /**
      * Returns num randomly selected isbns from the input set
      *

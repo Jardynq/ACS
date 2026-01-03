@@ -5,12 +5,16 @@ package com.acertainbookstore.client.workloads;
 
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import com.acertainbookstore.business.BookEditorPick;
+import com.acertainbookstore.business.BookRating;
 import com.acertainbookstore.business.CertainBookStore;
+import com.acertainbookstore.business.StockBook;
 import com.acertainbookstore.client.BookStoreHTTPProxy;
 import com.acertainbookstore.client.StockManagerHTTPProxy;
 import com.acertainbookstore.interfaces.BookStore;
@@ -31,7 +35,8 @@ public class CertainWorkload {
     public static final int maxThreads = 32;
     public static final int numWarmupRuns = 100;
     public static final int numRuns = 1000;
-    public static boolean localTest = true;
+    public static final int initialBooks = 10;
+    public static boolean localTest = false;
 
 	/**
 	 * @param args
@@ -186,10 +191,18 @@ public class CertainWorkload {
 	 */
 	public static void initializeBookStoreData(BookStore bookStore,
 			StockManager stockManager) throws BookStoreException {
-        bookStore = bookStore;
-        stockManager = stockManager;
+        var rand = new java.util.Random(42);
+        var bookSetGenerator = new BookSetGenerator(42);
+        var booksToAdd = bookSetGenerator.nextSetOfStockBooks(initialBooks);
+        stockManager.addBooks(booksToAdd);
 
+        var booksList = new ArrayList<>(booksToAdd);
+        java.util.Collections.shuffle(booksList, rand);
 
-
-	}
+        var picks = new HashSet<BookEditorPick>();
+        for (StockBook book : booksList) {
+            picks.add(new BookEditorPick(book.getISBN(), rand.nextBoolean()));
+        }
+        stockManager.updateEditorPicks(picks);
+    }
 }

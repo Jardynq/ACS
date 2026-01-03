@@ -27,10 +27,10 @@ for label, df in datasets.items():
         color=line.get_color(), alpha=0.4
     )
 
-plt.title(f'Latency vs Threads')
-plt.suptitle(f'Benchmark Configuration: Runs={runs}, Warmup={warmup}', fontsize=11)
-plt.xlabel('Number of Threads')
-plt.ylabel('Latency [us]')
+plt.title(f'Latency vs Threads', fontsize=14)
+plt.suptitle(f'Benchmark Configuration: Runs={runs}, Warmup={warmup}', fontsize=12)
+plt.xlabel('Number of Threads', fontsize=12)
+plt.ylabel('Latency [us]', fontsize=12)
 plt.legend()
 plt.grid(True, linestyle='--', alpha=0.6)
 plt.savefig('latency_plot.png')
@@ -50,10 +50,10 @@ for label, df in datasets.items():
         color=line.get_color(), alpha=0.4
     )
 
-plt.title(f'Throughput vs Threads')
-plt.suptitle(f'Benchmark Configuration: Runs={runs}, Warmup={warmup}', fontsize=11)
-plt.xlabel('Number of Threads')
-plt.ylabel('Throughput [op/s]')
+plt.title(f'Throughput vs Threads', fontsize=14)
+plt.suptitle(f'Benchmark Configuration: Runs={runs}, Warmup={warmup}', fontsize=12)
+plt.xlabel('Number of Threads', fontsize=12)
+plt.ylabel('Throughput [op/s]', fontsize=12)
 plt.legend()
 plt.grid(True, linestyle='--', alpha=0.6)
 plt.savefig('throughput_plot.png')
